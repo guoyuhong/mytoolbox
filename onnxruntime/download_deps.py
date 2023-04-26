@@ -5,9 +5,8 @@ import sys
 
 
 def run_cmd(cmd, timeout=None):
-    proc = subprocess.Popen(cmd,
-                            stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
+    proc = subprocess.Popen(
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout, stderr = proc.communicate(timeout=timeout)
     stdout = stdout.decode()
     stderr = stderr.decode()
@@ -16,14 +15,10 @@ def run_cmd(cmd, timeout=None):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("-d",
-                        "--dir",
-                        required=True,
-                        help="Base dirs for dependencies")
-    parser.add_argument("-t",
-                        "--timeout",
-                        default="15",
-                        help="Timeout time in secondes")
+    parser.add_argument(
+        "-d", "--dir", required=True, help="Base dirs for dependencies")
+    parser.add_argument(
+        "-t", "--timeout", default="15", help="Timeout time in secondes")
     args = parser.parse_args()
     with open(os.path.join(os.path.split(__file__)[0], "dep_map.txt")) as fin:
         for line in fin:
@@ -51,6 +46,9 @@ def main():
                         sys.exit(1)
                     else:
                         print("Retrying...")
+                else:
+                    # Succeed.
+                    break
 
 
 if __name__ == "__main__":
