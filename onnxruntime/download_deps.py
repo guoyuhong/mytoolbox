@@ -7,7 +7,10 @@ import sys
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(
         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    stdout, stderr = proc.communicate(timeout=timeout)
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return (1, f"Timeout of {timeout} seconds", "")
     stdout = stdout.decode()
     stderr = stderr.decode()
     return (proc.returncode, stdout, stderr)
