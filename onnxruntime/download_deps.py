@@ -29,7 +29,7 @@ def main():
             local_dir = os.path.join(args.dir, segs[1])
             os.system(f"mkdir -p {local_dir}")
             local_file = os.path.join(local_dir, os.path.split(segs[0])[-1])
-            if os.path.exists(local_file):
+            if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
                 print(f"{local_file} exists, skip.")
                 continue
             cmd = f"wget -c {segs[0]} -O {local_file}"
