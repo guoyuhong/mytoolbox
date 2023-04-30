@@ -1,9 +1,10 @@
 #!/bin/sh
 
 YAPF_VERSION=`yapf --version`
-if [[ $YAPF_VERSION != "yapf 0.23.0" ]]; then
+YAPF_WANT_VERSION="0.32.0"
+if [[ $YAPF_VERSION != "yapf ${YAPF_WANT_VERSION}" ]]; then
   echo "yapf version is $YAPF_VERSION, reinstall."
-  pip install yapf==0.23.0 -i https://pypi.antfin-inc.com/simple
+  pip install yapf==${YAPF_WANT_VERSION} -i https://mirrors.aliyun.com/pypi/simple/
 fi
 
 # Python lint test.

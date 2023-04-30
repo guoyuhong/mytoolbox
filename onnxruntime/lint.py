@@ -6,18 +6,16 @@ import sys
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-i",
-        "--install",
-        dest='install',
-        action='store_true',
-        help='Whether to install the lint env.')
-    parser.add_argument(
-        "-d",
-        "--diff",
-        dest='diff',
-        action='store_true',
-        help='Whether only show the diff without applying.')
+    parser.add_argument("-i",
+                        "--install",
+                        dest='install',
+                        action='store_true',
+                        help='Whether to install the lint env.')
+    parser.add_argument("-d",
+                        "--diff",
+                        dest='diff',
+                        action='store_true',
+                        help='Whether only show the diff without applying.')
     args = parser.parse_args()
     source = "https://mirrors.aliyun.com/pypi/simple/"
     if args.install:

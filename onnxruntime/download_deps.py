@@ -9,8 +9,9 @@ SAVE = os.path.join(HOME, ".mytoolbox/onnxruntime/deps_save")
 
 
 def run_cmd(cmd, timeout=None):
-    proc = subprocess.Popen(
-        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    proc = subprocess.Popen(cmd,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE)
     try:
         stdout, stderr = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
@@ -58,20 +59,20 @@ def download_deps(resource_file, timeout):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--dir", help="Base dirs for dependencies")
-    parser.add_argument(
-        "-t", "--timeout", default="15", help="Timeout time in secondes")
-    parser.add_argument(
-        "-s",
-        "--save",
-        dest='save',
-        action='store_true',
-        help='Whether to save the files from --dir backward.')
-    parser.add_argument(
-        "-c",
-        "--clean",
-        dest='clean',
-        action='store_true',
-        help='Clean the saved repo.')
+    parser.add_argument("-t",
+                        "--timeout",
+                        default="15",
+                        help="Timeout time in secondes")
+    parser.add_argument("-s",
+                        "--save",
+                        dest='save',
+                        action='store_true',
+                        help='Whether to save the files from --dir backward.')
+    parser.add_argument("-c",
+                        "--clean",
+                        dest='clean',
+                        action='store_true',
+                        help='Clean the saved repo.')
     args = parser.parse_args()
     if args.clean:
         assert os.system(f"rm -rf {SAVE}") == 0
