@@ -1,30 +1,28 @@
 import argparse
 import os
-import subprocess
 import sys
+
+REQ_FILE = os.path.join(
+    os.path.split(__file__)[0], "../data/onnxruntime/requirements-dev.txt")
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-i",
-        "--install",
-        dest='install',
-        action='store_true',
-        help='Whether to install the lint env.')
-    parser.add_argument(
-        "-d",
-        "--diff",
-        dest='diff',
-        action='store_true',
-        help='Whether only show the diff without applying.')
+    parser.add_argument("-i",
+                        "--install",
+                        dest='install',
+                        action='store_true',
+                        help='Whether to install the lint env.')
+    parser.add_argument("-d",
+                        "--diff",
+                        dest='diff',
+                        action='store_true',
+                        help='Whether only show the diff without applying.')
     args = parser.parse_args()
     source = "https://mirrors.aliyun.com/pypi/simple/"
     if args.install:
-        requires = os.path.join(
-            os.path.split(__file__)[0], "requirements-dev.txt")
         assert os.system(
-            f"{sys.executable} -m pip install -r {requires} -i {source}") == 0
+            f"{sys.executable} -m pip install -r {REQ_FILE} -i {source}") == 0
         assert os.system(
             f"{sys.executable} -m pip install lintrunner lintrunner-adapters -i {source}"
         ) == 0
