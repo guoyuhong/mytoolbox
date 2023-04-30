@@ -3,6 +3,10 @@ import os
 import subprocess
 import sys
 
+HOME = os.path.expanduser('~')
+DEPS = os.path.join(HOME, ".mytoolbox/onnxruntime/deps")
+SAVE = os.path.join(HOME, ".mytoolbox/onnxruntime/deps_save")
+
 
 def run_cmd(cmd, timeout=None):
     proc = subprocess.Popen(
@@ -16,20 +20,16 @@ def run_cmd(cmd, timeout=None):
     return (proc.returncode, stdout, stderr)
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-d", "--dir", required=True, help="Base dirs for dependencies")
-    parser.add_argument(
-        "-t", "--timeout", default="15", help="Timeout time in secondes")
-    args = parser.parse_args()
-    with open(os.path.join(os.path.split(__file__)[0], "dep_map.txt")) as fin:
+def download_deps(resource_file, timeout):
+    resource_map = {}
+    with open(resource_file, "r") as fin:
         for line in fin:
             line = line.strip()
             segs = line.split(",")
             if len(segs) != 2:
                 continue
-            local_dir = os.path.join(args.dir, segs[1])
+            local_dir = os.path.join(DEPS, segs[1])
+            resource_map[segs[1]] = segs[0]
             os.system(f"mkdir -p {local_dir}")
             local_file = os.path.join(local_dir, os.path.split(segs[0])[-1])
             if os.path.exists(local_file) and os.path.getsize(local_file) > 0:
@@ -39,19 +39,60 @@ def main():
             print(f"Running: {cmd}")
             retries = 3
             for i in range(retries):
-                code, stdout, stderr = run_cmd(cmd.split(),
-                                               float(args.timeout))
+                code, stdout, stderr = run_cmd(cmd.split(), float(timeout))
                 if code != 0:
                     if i + 1 == retries:
                         print(
                             f"{i}:Run {cmd} with stdout: {stdout}\nstderr: {stderr}"
                         )
+                        os.system(f"rm -rf {local_file}")
                         sys.exit(1)
                     else:
                         print("Retrying...")
                 else:
                     # Succeed.
                     break
+    return resource_map
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-d", "--dir", help="Base dirs for dependencies")
+    parser.add_argument(
+        "-t", "--timeout", default="15", help="Timeout time in secondes")
+    parser.add_argument(
+        "-s",
+        "--save",
+        dest='save',
+        action='store_true',
+        help='Whether to save the files from --dir backward.')
+    parser.add_argument(
+        "-c",
+        "--clean",
+        dest='clean',
+        action='store_true',
+        help='Clean the saved repo.')
+    args = parser.parse_args()
+    if args.clean:
+        assert os.system(f"rm -rf {SAVE}") == 0
+    if args.save:
+        if len(args.dir) == 0:
+            raise Exception(f"--save requires --dir to set")
+        assert os.system(f"rm -rf {SAVE}/*") == 0
+        assert os.system(f"cp -r {args.dir}/* {SAVE}/") == 0
+        sys.exit(0)
+    resource_file = os.path.join(os.path.split(__file__)[0], "dep_map.txt")
+    resource_map = download_deps(resource_file, args.timeout)
+    if args.dir is None:
+        return
+    if os.path.exists(SAVE):
+        assert os.system(f"cp {SAVE}/* {args.dir}/") == 0
+    else:
+        for resource_dir in resource_map:
+            src = os.path.join(DEPS, resource_dir)
+            dst = os.path.join(args.dir, resource_dir)
+            assert os.system(f"mkdir -p {dst}") == 0
+            assert os.system(f"cp -r {src} {dst}") == 0
 
 
 if __name__ == "__main__":
