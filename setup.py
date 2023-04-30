@@ -51,6 +51,9 @@ setup(
     extras_require={
         'testing': testing_extras,
     },
+    data_files=[
+        ("data", ["gtbox/data/onnxruntime/dep_map.txt","gtbox/data/onnxruntime/requirements-dev.txt",])
+    ],
     include_package_data=True,
     tests_require=tests_require,
     test_suite=(PACKAGE_NAME + ".test"),

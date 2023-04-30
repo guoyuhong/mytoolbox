@@ -6,6 +6,8 @@ import sys
 HOME = os.path.expanduser('~')
 DEPS = os.path.join(HOME, ".gtbox/onnxruntime/deps")
 SAVE = os.path.join(HOME, ".gtbox/onnxruntime/deps_save")
+DEP_FILE = os.path.join(
+    os.path.split(__file__)[0], "../data/onnxruntime/dep_map.txt")
 
 
 def run_cmd(cmd, timeout=None):
@@ -86,8 +88,7 @@ def main():
         assert os.system(
             f"find {SAVE} -name CMakeCache.txt | xargs rm -rf") == 0
         sys.exit(0)
-    resource_file = os.path.join(os.path.split(__file__)[0], "dep_map.txt")
-    resource_map = download_deps(resource_file, args.timeout)
+    resource_map = download_deps(DEP_FILE, args.timeout)
     if args.dir is None:
         return
     if os.path.exists(SAVE):
