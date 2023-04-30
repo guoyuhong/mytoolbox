@@ -4,8 +4,8 @@ import subprocess
 import sys
 
 HOME = os.path.expanduser('~')
-DEPS = os.path.join(HOME, ".mytoolbox/onnxruntime/deps")
-SAVE = os.path.join(HOME, ".mytoolbox/onnxruntime/deps_save")
+DEPS = os.path.join(HOME, ".gtbox/onnxruntime/deps")
+SAVE = os.path.join(HOME, ".gtbox/onnxruntime/deps_save")
 
 
 def run_cmd(cmd, timeout=None):
@@ -83,7 +83,8 @@ def main():
         assert os.system(f"rm -rf {SAVE}/*") == 0
         assert os.system(f"cp -r {args.dir}/* {SAVE}/") == 0
         # Remove the CMakeCache.txt files.
-        assert os.system(f"find {SAVE} -name CMakeCache.txt | xargs rm -rf")
+        assert os.system(
+            f"find {SAVE} -name CMakeCache.txt | xargs rm -rf") == 0
         sys.exit(0)
     resource_file = os.path.join(os.path.split(__file__)[0], "dep_map.txt")
     resource_map = download_deps(resource_file, args.timeout)
