@@ -79,15 +79,20 @@ def main():
     if args.save:
         if len(args.dir) == 0:
             raise Exception(f"--save requires --dir to set")
+        assert os.system(f"mkdir -p {SAVE}") == 0
         assert os.system(f"rm -rf {SAVE}/*") == 0
         assert os.system(f"cp -r {args.dir}/* {SAVE}/") == 0
+        # Remove the CMakeCache.txt files.
+        assert os.system(f"find {SAVE} -name CMakeCache.txt | xargs rm -rf")
         sys.exit(0)
     resource_file = os.path.join(os.path.split(__file__)[0], "dep_map.txt")
     resource_map = download_deps(resource_file, args.timeout)
     if args.dir is None:
         return
     if os.path.exists(SAVE):
-        assert os.system(f"cp {SAVE}/* {args.dir}/") == 0
+        print(f"{SAVE} exists, copy from {SAVE} to {args.dir}")
+        assert os.system(f"mkdir -p {args.dir}") == 0
+        assert os.system(f"cp -rf {SAVE}/* {args.dir}/") == 0
     else:
         for resource_dir in resource_map:
             src = os.path.join(DEPS, resource_dir)
