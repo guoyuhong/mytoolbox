@@ -9,7 +9,8 @@ py_version = sys.version_info[:2]
 
 assert py_version > (3, 5), "Python3.6 is the lowest supported version"
 
-PACKAGE_NAME = "mytoolbox"
+# gtbox is short for GYH's tool box.
+PACKAGE_NAME = "gtbox"
 
 requires = [
     "yapf==0.32.0",
@@ -55,8 +56,8 @@ setup(
     test_suite=(PACKAGE_NAME + ".test"),
     entry_points={
         'console_scripts': [
-            'ortdeps=mytoolbox.download_deps:main',
-            'ortlint=mytoolbox.lint:main',
+            'ortdeps=gtbox.onnxruntime.download_deps:main',
+            'ortlint=gtbox.onnxruntime.lint:main',
         ],
     },
     scripts=[],

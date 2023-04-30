@@ -60,7 +60,7 @@ EXCLUDES=(
 )
 
 APPLY_FILES=(
-  '../onnxruntime'
+  '../gtbox/onnxruntime'
   '.'
 )
 
