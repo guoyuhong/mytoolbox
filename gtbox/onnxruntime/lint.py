@@ -26,7 +26,7 @@ def main():
         assert os.system(
             f"{sys.executable} -m pip install lintrunner lintrunner-adapters -i {source}"
         ) == 0
-        assert os.system("lintrunner init")
+        assert os.system("lintrunner init") == 0
     if args.diff:
         assert os.system(
             "lintrunner --force-color --all-files --tee-json=lint.json -v"
