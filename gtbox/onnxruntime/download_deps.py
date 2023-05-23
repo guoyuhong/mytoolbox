@@ -41,6 +41,8 @@ def parse_deps(resource_file):
             line = line.strip()
             if platform.system() != "Windows" and ("win32" in line or "win64" in line):
                 continue
+            if platform.machine() == "x86_64" and "aarch_64" in line:
+                continue
             if line.startswith("#"):
                 continue
             segs = line.split(";")
@@ -140,7 +142,7 @@ def main():
             src = os.path.join(DEPS, resource_dir)
             dst = os.path.join(args.dir, resource_dir)
             assert os.system(f"mkdir -p {dst}") == 0
-            assert os.system(f"cp -r {src} {dst}") == 0
+            assert os.system(f"cp -r {src}/* {dst}") == 0
 
 
 if __name__ == "__main__":
