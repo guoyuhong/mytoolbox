@@ -2,6 +2,7 @@ import argparse
 import os
 import subprocess
 import sys
+import platform
 import hashlib
 
 HOME = os.path.expanduser('~')
@@ -38,6 +39,8 @@ def parse_deps(resource_file):
     with open(resource_file, "r") as fin:
         for line in fin:
             line = line.strip()
+            if platform.system() != "Windows" and ("win32" in line or "win64" in line):
+                continue
             if line.startswith("#"):
                 continue
             segs = line.split(";")
