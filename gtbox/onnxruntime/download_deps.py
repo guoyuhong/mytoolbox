@@ -3,24 +3,54 @@ import os
 import subprocess
 import sys
 import platform
+import time
 import hashlib
+import threading
 
 HOME = os.path.expanduser('~')
 DEPS = os.path.join(HOME, ".gtbox/onnxruntime/deps")
 SAVE = os.path.join(HOME, ".gtbox/onnxruntime/deps_save")
 
 
-def run_cmd(cmd, timeout=None):
+def run_cmd(cmd, timeout):
     proc = subprocess.Popen(cmd,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE)
-    try:
-        stdout, stderr = proc.communicate(timeout=timeout)
-    except subprocess.TimeoutExpired:
-        return (1, f"Timeout of {timeout} seconds", "")
-    stdout = stdout.decode()
-    stderr = stderr.decode()
-    return (proc.returncode, stdout, stderr)
+    output_lines = []
+
+    def stdout_thread():
+        nonlocal output_lines
+        for line in proc.stdout:
+            output_lines.append(line)
+
+    def stderr_thread():
+        nonlocal output_lines
+        for line in proc.stderr:
+            output_lines.append(line)
+
+    prev_count = 0
+    thread1 = threading.Thread(target=stdout_thread)
+    thread2 = threading.Thread(target=stderr_thread)
+    thread1.start()
+    thread2.start()
+    tik = 0
+    last_valid_tik = 0
+    while True:
+        time.sleep(1)
+        tik += 1
+        cur = len(output_lines)
+        if cur != prev_count:
+            for i in range(prev_count, cur):
+                print(output_lines[i].decode().rstrip())
+            last_valid_tik = tik
+            prev_count = cur
+        elif proc.poll() is not None:
+            break
+        if last_valid_tik - tik > timeout:
+            proc.kill()
+            return 1
+
+    return proc.returncode
 
 
 class DepItem:
@@ -39,7 +69,10 @@ def parse_deps(resource_file):
     with open(resource_file, "r") as fin:
         for line in fin:
             line = line.strip()
-            if platform.system() != "Windows" and ("win32" in line or "win64" in line):
+            if "protoc-" in line:
+                continue
+            if platform.system() != "Windows" and ("win32" in line
+                                                   or "win64" in line):
                 continue
             if platform.machine() == "x86_64" and "aarch_64" in line:
                 continue
@@ -53,6 +86,7 @@ def parse_deps(resource_file):
 
 
 def download_deps(resource_map, timeout):
+    may_have_diff_sha1 = ["curl"]
     for key in resource_map:
         item = resource_map[key]
         local_dir = os.path.join(DEPS,
@@ -67,16 +101,16 @@ def download_deps(resource_map, timeout):
                 if readable_hash == item.sha1:
                     print(f"{local_file} exists, skip.")
                     continue
-        cmd = f"wget -c {item.url} -O {local_file}"
+                elif key in may_have_diff_sha1:
+                    continue
+        cmd = f"wget -c {item.url} -O {local_file} --no-check-certificate"
         print(f"Running: {cmd}")
-        retries = 3
+        retries = 5
         for i in range(retries):
-            code, stdout, stderr = run_cmd(cmd.split(), float(timeout))
+            code = run_cmd(cmd.split(), float(timeout))
             if code != 0:
                 if i + 1 == retries:
-                    print(
-                        f"{i}:Run {cmd} with stdout: {stdout}\nstderr: {stderr}"
-                    )
+                    print(f"{i}:Run {cmd} failed")
                     os.system(f"rm -rf {local_file}")
                     sys.exit(1)
                 else:
@@ -91,7 +125,7 @@ def main():
     parser.add_argument("-d", "--dir", help="Base dirs for dependencies")
     parser.add_argument("-t",
                         "--timeout",
-                        default="15",
+                        default="5",
                         help="Timeout time in secondes")
     parser.add_argument("-s",
                         "--save",
@@ -133,15 +167,25 @@ def main():
     download_deps(resource_map, args.timeout)
     if args.dir is None:
         return
+    name_change_map = {
+        "json": "nlohmann_json",
+    }
     if os.path.exists(SAVE):
         print(f"{SAVE} exists, copy from {SAVE} to {args.dir}")
         assert os.system(f"mkdir -p {args.dir}") == 0
         assert os.system(f"cp -rf {SAVE}/* {args.dir}/") == 0
     else:
-        for resource_dir in resource_map:
-            src = os.path.join(DEPS, resource_dir)
-            dst = os.path.join(args.dir, resource_dir)
+        for key in resource_map:
+            if key in name_change_map:
+                use_key = name_change_map[key]
+            else:
+                use_key = key
+            src = os.path.join(DEPS,
+                               f"{key}-subbuild/{key}-populate-prefix/src")
+            dst = os.path.join(
+                args.dir, f"{use_key}-subbuild/{use_key}-populate-prefix/src")
             assert os.system(f"mkdir -p {dst}") == 0
+            print(f"cp -r {src}/* {dst}")
             assert os.system(f"cp -r {src}/* {dst}") == 0
 
 
