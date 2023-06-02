@@ -168,6 +168,7 @@ def main():
     if args.dir is None:
         return
     name_change_map = {
+        "microsoft_gsl": "gsl",
         "json": "nlohmann_json",
     }
     if os.path.exists(SAVE):
